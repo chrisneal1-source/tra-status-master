@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase, type Engagement, type TeamMember, type System } from '@/lib/supabase'
-import { Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react'
 
 export default function SettingsPage() {
   const [engagements, setEngagements] = useState<Engagement[]>([])
@@ -103,11 +104,19 @@ export default function SettingsPage() {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }))
   }
 
+  const router = useRouter()
+
   if (loading) return <div className="p-8 text-center text-gray-400 text-sm">Loading...</div>
 
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-3"
+        >
+          <ChevronLeft size={15} /> Back
+        </button>
         <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
         <p className="text-sm text-gray-500 mt-0.5">Manage clients, team members, and systems</p>
       </div>
