@@ -76,14 +76,14 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Total Workpapers', value: total, params: {} },
-          { label: 'Complete', value: complete, sub: `${pctComplete}% of total`, params: { status: 'Complete' } },
-          { label: 'Review Points', value: reviewPoints, sub: 'needs attention', params: { status: 'Review Points' } },
-          { label: 'On Hold', value: onHold, params: { status: 'On Hold' } },
-        ].map(({ label, value, sub, params }) => (
+          { label: 'Total Workpapers', value: total, sub: undefined, status: undefined },
+          { label: 'Complete', value: complete, sub: `${pctComplete}% of total`, status: 'Complete' },
+          { label: 'Review Points', value: reviewPoints, sub: 'needs attention', status: 'Review Points' },
+          { label: 'On Hold', value: onHold, sub: undefined, status: 'On Hold' },
+        ].map(({ label, value, sub, status }) => (
           <button
             key={label}
-            onClick={() => Object.keys(params).length ? goToTracker(params) : router.push(`/${slug}/tracker`)}
+            onClick={() => status ? goToTracker({ status }) : router.push(`/${slug}/tracker`)}
             className="bg-white rounded-xl border border-gray-200 p-5 text-left hover:border-red-300 hover:shadow-sm transition-all"
           >
             <p className="text-sm text-gray-500">{label}</p>
@@ -110,7 +110,7 @@ export default function DashboardPage() {
                   paddingAngle={2}
                   dataKey="value"
                   cursor="pointer"
-                  onClick={(entry) => goToTracker({ status: entry.name })}
+                  onClick={(entry) => entry.name && goToTracker({ status: entry.name })}
                 >
                   {pieData.map((entry) => (
                     <Cell key={entry.name} fill={STATUS_COLORS[entry.name as Status]} />
@@ -137,7 +137,7 @@ export default function DashboardPage() {
                     stackId="a"
                     fill={STATUS_COLORS[s]}
                     cursor="pointer"
-                    onClick={(entry) => goToTracker({ assignee: entry.name, status: s })}
+                    onClick={(entry) => entry.name && goToTracker({ assignee: entry.name, status: s })}
                   />
                 ))}
               </BarChart>
