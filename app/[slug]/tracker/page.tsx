@@ -102,41 +102,26 @@ function stamp(existing: string, newText: string): string {
 }
 
 function NotesCell({ value, onChange }: { value: string; onChange: (val: string) => void }) {
-  const [expanded, setExpanded] = useState(false)
   const [draft, setDraft] = useState('')
 
+  function save() {
+    if (!draft.trim()) return
+    onChange(stamp(value, draft.trim()))
+    setDraft('')
+  }
+
   return (
-    <div className="flex flex-col gap-1">
+    <div title={value || undefined} className="flex flex-col gap-0.5">
       {value && (
-        <div className="text-xs text-gray-500 whitespace-pre-wrap leading-relaxed">{value}</div>
+        <div className="text-xs text-gray-400 truncate max-w-xs">{value.split('\n').at(-1)}</div>
       )}
-      <textarea
-        rows={expanded ? 3 : 1}
+      <input
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.altKey && e.key === 'Enter') {
-            e.preventDefault()
-            setExpanded((x) => !x)
-          }
-          if (e.key === 'Enter' && !e.altKey && !e.shiftKey) {
-            e.preventDefault()
-            if (draft.trim()) {
-              onChange(stamp(value, draft))
-              setDraft('')
-              setExpanded(false)
-            }
-          }
-        }}
-        onBlur={() => {
-          if (draft.trim()) {
-            onChange(stamp(value, draft))
-            setDraft('')
-            setExpanded(false)
-          }
-        }}
-        placeholder="Add note (Enter to save, Alt+Enter to expand)..."
-        className="w-full bg-transparent text-black text-sm focus:outline-none focus:ring-1 focus:ring-red-400 rounded px-1 -mx-1 resize-none"
+        onBlur={save}
+        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); save(); (e.target as HTMLInputElement).blur() } }}
+        placeholder={value ? 'Add another note...' : 'Add a note...'}
+        className="w-full bg-transparent text-black text-sm focus:outline-none focus:ring-1 focus:ring-red-400 rounded px-1 -mx-1"
       />
     </div>
   )
