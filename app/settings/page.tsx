@@ -10,6 +10,7 @@ export default function SettingsPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [systems, setSystems] = useState<System[]>([])
   const [newEngagement, setNewEngagement] = useState('')
+  const [newYearEnd, setNewYearEnd] = useState('')
   const [newMemberName, setNewMemberName] = useState<Record<string, string>>({})
   const [newSystemName, setNewSystemName] = useState<Record<string, string>>({})
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
@@ -32,12 +33,17 @@ export default function SettingsPage() {
 
   async function addEngagement() {
     const name = newEngagement.trim()
-    if (!name) return
+    if (!name || !newYearEnd) return
     const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-    const { data, error } = await supabase.from('engagements').insert({ name, slug }).select().single()
+    const { data, error } = await supabase
+      .from('engagements')
+      .insert({ name, slug, year_end: newYearEnd })
+      .select()
+      .single()
     if (!error && data) {
       setEngagements((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)))
       setNewEngagement('')
+      setNewYearEnd('')
     }
   }
 
@@ -132,9 +138,19 @@ export default function SettingsPage() {
             onKeyDown={(e) => e.key === 'Enter' && addEngagement()}
             className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
           />
+          <div className="flex flex-col gap-0.5">
+            <label className="text-xs text-gray-400 pl-1">Year End</label>
+            <input
+              type="date"
+              value={newYearEnd}
+              onChange={(e) => setNewYearEnd(e.target.value)}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+          </div>
           <button
             onClick={addEngagement}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
+            disabled={!newEngagement.trim() || !newYearEnd}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed self-end"
           >
             <Plus size={15} /> Add
           </button>
@@ -156,8 +172,13 @@ export default function SettingsPage() {
                 <button onClick={() => toggleExpanded(eng.id)} className="flex items-center gap-2 text-left flex-1">
                   {isOpen ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronRight size={16} className="text-gray-400" />}
                   <span className="font-medium text-gray-900">{eng.name}</span>
+                  {eng.year_end && (
+                    <span className="text-xs text-gray-400 ml-1">
+                      YE {new Date(eng.year_end).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  )}
                   <span className="text-xs text-gray-400 ml-1">
-                    {members.length} member{members.length !== 1 ? 's' : ''} · {engSystems.length} system{engSystems.length !== 1 ? 's' : ''}
+                    · {members.length} member{members.length !== 1 ? 's' : ''} · {engSystems.length} system{engSystems.length !== 1 ? 's' : ''}
                   </span>
                 </button>
                 <button onClick={() => deleteEngagement(eng.id)} className="text-gray-300 hover:text-red-500 transition-colors ml-4">

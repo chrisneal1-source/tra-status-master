@@ -66,7 +66,14 @@ export default function Home() {
                   <FolderOpen size={20} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-900">{eng.name}</div>
+                  <div className="flex items-baseline gap-2">
+                    <div className="font-medium text-gray-900">{eng.name}</div>
+                    {eng.year_end && (
+                      <span className="text-xs text-gray-400">
+                        YE {new Date(eng.year_end).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex gap-4 mt-1">
                     <span className="text-xs text-gray-400">{s.total} workpapers</span>
                     <span className="text-xs text-yellow-600">{s.prepared} prepared</span>

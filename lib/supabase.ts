@@ -31,6 +31,7 @@ export interface Engagement {
   id: string
   name: string
   slug: string
+  year_end: string | null
   created_at: string
 }
 
