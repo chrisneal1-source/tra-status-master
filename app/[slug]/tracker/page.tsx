@@ -82,6 +82,66 @@ function StatusPill({ status, onChange }: { status: Status; onChange: (s: Status
   )
 }
 
+function getInitials(): string {
+  if (typeof window === 'undefined') return ''
+  let initials = localStorage.getItem('userInitials')
+  if (!initials) {
+    initials = window.prompt('Enter your initials (e.g. CN):') ?? ''
+    if (initials) localStorage.setItem('userInitials', initials.toUpperCase())
+  }
+  return initials.toUpperCase()
+}
+
+function stamp(existing: string, newText: string): string {
+  const initials = getInitials()
+  const date = new Date()
+  const d = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`
+  const prefix = initials ? `[${initials} ${d}] ` : `[${d}] `
+  const entry = prefix + newText.trim()
+  return existing ? `${existing}\n${entry}` : entry
+}
+
+function NotesCell({ value, onChange }: { value: string; onChange: (val: string) => void }) {
+  const [expanded, setExpanded] = useState(false)
+  const [draft, setDraft] = useState('')
+
+  return (
+    <div className="flex flex-col gap-1">
+      {value && (
+        <div className="text-xs text-gray-500 whitespace-pre-wrap leading-relaxed">{value}</div>
+      )}
+      <textarea
+        rows={expanded ? 3 : 1}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.altKey && e.key === 'Enter') {
+            e.preventDefault()
+            setExpanded((x) => !x)
+          }
+          if (e.key === 'Enter' && !e.altKey && !e.shiftKey) {
+            e.preventDefault()
+            if (draft.trim()) {
+              onChange(stamp(value, draft))
+              setDraft('')
+              setExpanded(false)
+            }
+          }
+        }}
+        onBlur={() => {
+          if (draft.trim()) {
+            onChange(stamp(value, draft))
+            setDraft('')
+            setExpanded(false)
+          }
+        }}
+        placeholder="Add note (Enter to save, Alt+Enter to expand)..."
+        className="w-full bg-transparent text-black text-sm focus:outline-none focus:ring-1 focus:ring-red-400 rounded px-1 -mx-1 resize-none"
+      />
+    </div>
+  )
+}
+
 export default function TrackerPage() {
   const { slug } = useParams<{ slug: string }>()
   const searchParams = useSearchParams()
@@ -315,12 +375,7 @@ export default function TrackerPage() {
                     }} />
                   </td>
                   <td className="px-4 py-2">
-                    <input
-                      defaultValue={wp.notes ?? ''}
-                      onBlur={(e) => { const val = e.target.value; if (val !== (wp.notes ?? '')) updateField(wp.id, 'notes', val) }}
-                      className="w-full bg-transparent text-black focus:outline-none focus:ring-1 focus:ring-red-400 rounded px-1 -mx-1"
-                      placeholder="Add a note..."
-                    />
+                    <NotesCell value={wp.notes ?? ''} onChange={(val) => updateField(wp.id, 'notes', val)} />
                   </td>
                   <td className="px-4 py-2 text-center">
                     <button onClick={() => deleteWorkpaper(wp.id)} className="text-gray-300 hover:text-red-500 transition-colors">
